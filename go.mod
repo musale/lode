@@ -1,3 +1,3 @@
-module github.com/musale/lode
+module lo
 
 go 1.13
