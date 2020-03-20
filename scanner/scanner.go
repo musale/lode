@@ -3,7 +3,27 @@ package scanner
 import (
 	"lo/parseerror"
 	"lo/token"
+	"strconv"
 )
+
+var keyWords = map[string]token.Type{
+	"and":    token.AND,
+	"class":  token.CLASS,
+	"else":   token.ELSE,
+	"false":  token.FALSE,
+	"for":    token.FOR,
+	"fun":    token.FUN,
+	"if":     token.IF,
+	"nil":    token.NIL,
+	"or":     token.OR,
+	"print":  token.PRINT,
+	"return": token.RETURN,
+	"super":  token.SUPER,
+	"this":   token.THIS,
+	"true":   token.TRUE,
+	"var":    token.VAR,
+	"while":  token.WHILE,
+}
 
 // Scanner ...
 type Scanner struct {
@@ -93,8 +113,62 @@ func (s *Scanner) scanToken() {
 	case "\"":
 		s.parseString()
 	default:
-		parseerror.LogError(UnexpectedCharacterError{line: s.line, character: sourceChar})
+		if s.isDigit(sourceChar) {
+			s.number()
+		} else if s.isAlpha(sourceChar) {
+			s.identifier()
+		} else {
+			parseerror.LogError(UnexpectedCharacterError{line: s.line, character: sourceChar})
+		}
 	}
+}
+
+// identifier sets an identifier
+func (s *Scanner) identifier() {
+	for s.isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+	var tokenType token.Type
+	tokenText := string(s.source[s.start:s.current])
+	if keyWords[tokenText] == "" {
+		tokenType = token.IDENTIFIER
+	} else {
+		tokenType = keyWords[tokenText]
+	}
+	s.addToken(tokenType)
+}
+
+// isAlpha checks whether a character is an alphabet or _
+func (s *Scanner) isAlpha(char string) bool {
+	return char >= "a" && char <= "z" || char >= "A" && char <= "Z" || char == "_"
+}
+
+// isAlphaNumeric checks whether a character is an alphabet, _ or number
+func (s *Scanner) isAlphaNumeric(char string) bool {
+	return s.isAlpha(char) || s.isDigit(char)
+}
+
+// isDigit determines whether the character is a number between 0-9
+func (s *Scanner) isDigit(char string) bool {
+	return char >= "0" && char <= "9"
+}
+
+// number consumes a number literal
+func (s *Scanner) number() {
+	for s.isDigit(s.peek()) {
+		s.advance()
+	}
+
+	// Check if the number is followed by a decimal and a number
+	if s.peek() == "." && s.isDigit(s.peekNext()) {
+		s.advance()
+		for s.isDigit(s.peek()) {
+			s.advance()
+		}
+	}
+	// Maybe handle this error?
+	numberValue, _ := strconv.ParseFloat(s.source[s.start:s.current], 64)
+	s.addTokenWithLiteral(token.NUMBER, numberValue)
 }
 
 // parseString consumes a string from the opening to the closing double quote
@@ -119,6 +193,14 @@ func (s *Scanner) peek() string {
 		return "EOF"
 	}
 	return s.currentCharacter()
+}
+
+// peekNext looks ahead at the character after peek()
+func (s *Scanner) peekNext() string {
+	if s.current+1 >= len(s.source) {
+		return "EOF"
+	}
+	return string(s.source[s.current+1])
 }
 
 // match checks the next character in the source and determines if it is a
