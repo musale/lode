@@ -6,7 +6,9 @@ import (
 )
 
 func TestScanTokens(t *testing.T) {
-	source := `var num = 1+2+9.22`
+	source := `/* Testing comments */
+	var num = 1+2+9.22
+	`
 
 	scanner := New(source)
 	tokens := scanner.ScanTokens()
@@ -15,6 +17,7 @@ func TestScanTokens(t *testing.T) {
 		expectedType   token.Type
 		expectedLexeme string
 	}{
+		{token.COMMENT, "/* Testing comments */"},
 		{token.VAR, "var"}, {token.IDENTIFIER, "num"},
 		{token.EQUAL, "="}, {token.NUMBER, "1"}, {token.PLUS, "+"},
 		{token.NUMBER, "2"}, {token.PLUS, "+"}, {token.NUMBER, "9.22"},

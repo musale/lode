@@ -35,6 +35,7 @@ const (
 	IDENTIFIER = "IDENT"
 	STRING     = "STRING"
 	NUMBER     = "NUMBER"
+	COMMENT    = "COMMENT"
 	// keywords
 	AND      = "and"
 	CLASS    = "class"

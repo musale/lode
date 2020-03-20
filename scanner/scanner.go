@@ -71,7 +71,13 @@ func (s *Scanner) scanToken() {
 	case ";":
 		s.addToken(token.SEMICOLON)
 	case "*":
-		s.addToken(token.STAR)
+		if s.peekBack() != "/" || s.peek() != "/" {
+			s.addToken(token.STAR)
+		} else {
+			for s.peek() != "\n" && !s.isAtEnd() {
+				s.advance()
+			}
+		}
 	case "!": // !=
 		if !s.match("=") {
 			s.addToken(token.BANG)
@@ -97,7 +103,10 @@ func (s *Scanner) scanToken() {
 			s.addToken(token.GREATEREQUAL)
 		}
 	case "/":
-		if s.match("/") {
+		if s.peek() == "*" {
+			s.advance()
+			s.parseComment()
+		} else if s.match("/") {
 			for s.peek() != "\n" && !s.isAtEnd() {
 				s.advance()
 			}
@@ -121,6 +130,23 @@ func (s *Scanner) scanToken() {
 			parseerror.LogError(UnexpectedCharacterError{line: s.line, character: sourceChar})
 		}
 	}
+}
+
+// parseComment sets the comment tokens
+func (s *Scanner) parseComment() {
+	for s.peek() != "*" && s.peekNext() != "/" && !s.isAtEnd() {
+		s.line++
+		s.advance()
+	}
+	if s.isAtEnd() {
+		parseerror.LogError(UnterminatedCommentError{line: s.line})
+		return
+	}
+	s.advance()
+	s.advance()
+	// string the double quotes on both ends of the string
+	commentString := s.source[s.start+2 : s.current-2]
+	s.addTokenWithLiteral(token.COMMENT, string(commentString))
 }
 
 // identifier sets an identifier
@@ -187,12 +213,20 @@ func (s *Scanner) parseString() {
 	s.addTokenWithLiteral(token.STRING, string(stringValue))
 }
 
-// peek looksahead without consuming any character
+// peek looks ahead one character without consuming any character
 func (s *Scanner) peek() string {
 	if s.isAtEnd() {
 		return "EOF"
 	}
 	return s.currentCharacter()
+}
+
+// peekBack looks back one character without consuming any character
+func (s *Scanner) peekBack() string {
+	if s.isAtEnd() {
+		return "SOF"
+	}
+	return string(s.source[s.current-1])
 }
 
 // peekNext looks ahead at the character after peek()

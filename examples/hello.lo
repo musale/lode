@@ -1,1 +1,2 @@
-print "Hello Lox"
+/* comment here */
+var num = 14/7

@@ -22,3 +22,12 @@ type UnterminatedStringError struct {
 func (e UnterminatedStringError) Error() string {
 	return fmt.Sprintf("Unterminated string on col %d\n", e.line)
 }
+
+// UnterminatedCommentError raised when a string is not closed with a double quote
+type UnterminatedCommentError struct {
+	line int
+}
+
+func (e UnterminatedCommentError) Error() string {
+	return fmt.Sprintf("Unterminated comment on col %d\n", e.line)
+}
