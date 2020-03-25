@@ -1,7 +1,9 @@
 package ast
 
 import (
+	"fmt"
 	"lo/token"
+	"strings"
 )
 
 // Expr is the base of all expressions
@@ -16,8 +18,16 @@ type AssignExpr struct {
 }
 
 // Accept ...
-func (t AssignExpr) Accept(i Interpreter) interface{} {
+func (t *AssignExpr) Accept(i Interpreter) interface{} {
 	return i.VisitAssignExpression(t)
+}
+
+func (t *AssignExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString(t.name.Lexeme)
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprintf("%s", t.value))
+	return sb.String()
 }
 
 // BinaryExpr ...
@@ -30,6 +40,18 @@ type BinaryExpr struct {
 // Accept ...
 func (t *BinaryExpr) Accept(i Interpreter) interface{} {
 	return i.VisitBinaryExpression(t)
+}
+
+func (t *BinaryExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString("(")
+	sb.WriteString(t.operator.Lexeme)
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprintf("%s", t.left))
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprintf("%s", t.right))
+	sb.WriteString(")")
+	return sb.String()
 }
 
 // CallExpr ...
@@ -65,6 +87,14 @@ func (t *GroupExpr) Accept(i Interpreter) interface{} {
 	return i.VisitGroupExpression(t)
 }
 
+func (t *GroupExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString("(")
+	sb.WriteString(fmt.Sprintf("%s", t.expression))
+	sb.WriteString(")")
+	return sb.String()
+}
+
 // LiteralExpr defines a property access functionality
 type LiteralExpr struct {
 	object interface{}
@@ -73,6 +103,12 @@ type LiteralExpr struct {
 // Accept ...
 func (t *LiteralExpr) Accept(i Interpreter) interface{} {
 	return i.VisitLiteralExpression(t)
+}
+
+func (t *LiteralExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprint(t.object))
+	return sb.String()
 }
 
 // LogicalExpr defines a property access functionality
@@ -118,6 +154,13 @@ type UnaryExpr struct {
 // Accept ...
 func (t *UnaryExpr) Accept(i Interpreter) interface{} {
 	return i.VisitUnaryExpression(t)
+}
+
+func (t *UnaryExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString(t.operator.Lexeme)
+	sb.WriteString(fmt.Sprintf("%s", t.right))
+	return sb.String()
 }
 
 // VariableExpr defines a property access functionality
