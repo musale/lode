@@ -13,8 +13,8 @@ type Expr interface {
 
 // AssignExpr defines = operation
 type AssignExpr struct {
-	name  token.Token
-	value Expr
+	Name  token.Token
+	Value Expr
 }
 
 // Accept ...
@@ -24,17 +24,17 @@ func (t *AssignExpr) Accept(i Interpreter) interface{} {
 
 func (t *AssignExpr) String() string {
 	var sb strings.Builder
-	sb.WriteString(t.name.Lexeme)
+	sb.WriteString(t.Name.Lexeme)
 	sb.WriteString(" ")
-	sb.WriteString(fmt.Sprintf("%s", t.value))
+	sb.WriteString(fmt.Sprintf("%s", t.Value))
 	return sb.String()
 }
 
 // BinaryExpr ...
 type BinaryExpr struct {
-	left     Expr
-	operator token.Token
-	right    Expr
+	Left     Expr
+	Operator token.Token
+	Right    Expr
 }
 
 // Accept ...
@@ -45,41 +45,70 @@ func (t *BinaryExpr) Accept(i Interpreter) interface{} {
 func (t *BinaryExpr) String() string {
 	var sb strings.Builder
 	sb.WriteString("(")
-	sb.WriteString(t.operator.Lexeme)
+	sb.WriteString(t.Operator.Lexeme)
 	sb.WriteString(" ")
-	sb.WriteString(fmt.Sprintf("%s", t.left))
+	sb.WriteString(fmt.Sprintf("%s", t.Left))
 	sb.WriteString(" ")
-	sb.WriteString(fmt.Sprintf("%s", t.right))
+	sb.WriteString(fmt.Sprintf("%s", t.Right))
 	sb.WriteString(")")
 	return sb.String()
 }
 
 // CallExpr ...
 type CallExpr struct {
-	callee    Expr
-	paren     token.Token
-	arguments []Expr
+	Callee    Expr
+	Paren     token.Token
+	Arguments []Expr
 }
 
 // Accept ...
-func (t *CallExpr) Accept(i Interpreter) interface{} {
-	return i.VisitCallExpression(t)
+func (c *CallExpr) Accept(i Interpreter) interface{} {
+	return i.VisitCallExpression(c)
+}
+
+// String prints the call operator
+func (c *CallExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString("(")
+	sb.WriteString("call")
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprint(c.Callee))
+	sb.WriteString(" ")
+	for _, e := range c.Arguments {
+		sb.WriteString(fmt.Sprint(e))
+		sb.WriteString(" ")
+	}
+	sb.WriteString(")")
+	return sb.String()
 }
 
 // GetExpr defines a property access functionality
 type GetExpr struct {
-	object Expr
-	name   token.Token
+	Expression Expr
+	Name       token.Token
 }
 
 // Accept ...
-func (t *GetExpr) Accept(i Interpreter) interface{} {
-	return i.VisitGetExpression(t)
+func (g *GetExpr) Accept(i Interpreter) interface{} {
+	return i.VisitGetExpression(g)
+}
+
+// String pretty prints the class
+func (g *GetExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString("(")
+	sb.WriteString(".")
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprintf("%s", g.Expression))
+	sb.WriteString(" ")
+	sb.WriteString(g.Name.Lexeme)
+	sb.WriteString(")")
+	return sb.String()
 }
 
 // GroupExpr defines a property access functionality
 type GroupExpr struct {
-	expression Expr
+	Expression Expr
 }
 
 // Accept ...
@@ -90,14 +119,14 @@ func (t *GroupExpr) Accept(i Interpreter) interface{} {
 func (t *GroupExpr) String() string {
 	var sb strings.Builder
 	sb.WriteString("(")
-	sb.WriteString(fmt.Sprintf("%s", t.expression))
+	sb.WriteString(fmt.Sprintf("%s", t.Expression))
 	sb.WriteString(")")
 	return sb.String()
 }
 
 // LiteralExpr defines a property access functionality
 type LiteralExpr struct {
-	object interface{}
+	Object interface{}
 }
 
 // Accept ...
@@ -107,37 +136,65 @@ func (t *LiteralExpr) Accept(i Interpreter) interface{} {
 
 func (t *LiteralExpr) String() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprint(t.object))
+	sb.WriteString(fmt.Sprint(t.Object))
 	return sb.String()
 }
 
 // LogicalExpr defines a property access functionality
 type LogicalExpr struct {
-	left     Expr
-	operator token.Token
-	right    Expr
+	Left     Expr
+	Operator token.Token
+	Right    Expr
 }
 
 // Accept ...
-func (t *LogicalExpr) Accept(i Interpreter) interface{} {
-	return i.VisitLogicalExpression(t)
+func (l *LogicalExpr) Accept(i Interpreter) interface{} {
+	return i.VisitLogicalExpression(l)
+}
+
+// String pretty prints the unary operator
+func (l *LogicalExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString("(")
+	sb.WriteString(l.Operator.Lexeme)
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprint(l.Left))
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprint(l.Right))
+	sb.WriteString(")")
+	return sb.String()
 }
 
 // SetExpr defines a property access functionality
 type SetExpr struct {
-	object Expr
-	name   token.Token
-	value  Expr
+	Object Expr
+	Name   token.Token
+	Value  Expr
 }
 
 // Accept ...
-func (t *SetExpr) Accept(i Interpreter) interface{} {
-	return i.VisitSetExpression(t)
+func (s *SetExpr) Accept(i Interpreter) interface{} {
+	return i.VisitSetExpression(s)
+}
+
+// String pretty prints the setter
+func (s *SetExpr) String() string {
+	var sb strings.Builder
+	sb.WriteString("(")
+	sb.WriteString("set")
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprint(s.Object))
+	sb.WriteString(" ")
+	sb.WriteString(s.Name.Lexeme)
+	sb.WriteString(" ")
+	sb.WriteString(fmt.Sprint(s.Value))
+	sb.WriteString(")")
+	return sb.String()
 }
 
 // ThisExpr defines a property access functionality
 type ThisExpr struct {
-	keyword token.Token
+	Keyword token.Token
 }
 
 // Accept ...
@@ -145,10 +202,14 @@ func (t *ThisExpr) Accept(i Interpreter) interface{} {
 	return i.VisitThisExpression(t)
 }
 
+func (t *ThisExpr) String() string {
+	return fmt.Sprint(t.Keyword.Lexeme)
+}
+
 // UnaryExpr defines a property access functionality
 type UnaryExpr struct {
-	operator token.Token
-	right    Expr
+	Operator token.Token
+	Right    Expr
 }
 
 // Accept ...
@@ -158,17 +219,21 @@ func (t *UnaryExpr) Accept(i Interpreter) interface{} {
 
 func (t *UnaryExpr) String() string {
 	var sb strings.Builder
-	sb.WriteString(t.operator.Lexeme)
-	sb.WriteString(fmt.Sprintf("%s", t.right))
+	sb.WriteString(t.Operator.Lexeme)
+	sb.WriteString(fmt.Sprint(t.Right))
 	return sb.String()
 }
 
 // VariableExpr defines a property access functionality
 type VariableExpr struct {
-	name token.Token
+	Name token.Token
 }
 
 // Accept ...
 func (t *VariableExpr) Accept(i Interpreter) interface{} {
 	return i.VisitVariableExpression(t)
+}
+
+func (t *VariableExpr) String() string {
+	return fmt.Sprint((t.Name.Lexeme))
 }
