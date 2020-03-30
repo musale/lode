@@ -11,38 +11,37 @@ var HadError = false
 
 // SyntaxError describes a syntactic error on a given line
 type SyntaxError struct {
-	token   token.Token
-	message string
+	Token   token.Token
+	Message string
 }
 
 func (e *SyntaxError) Error() string {
-	reportError(e.token.Line, e.token.Lexeme, e.message)
-	return MakeError(e.token, e.message)
+	reportError(e.Token.Line, e.Token.Lexeme, e.Message)
+	return MakeError(e.Token, e.Message)
 }
 
 // ParseError is thrown when an error is encoutered during token parsing
 type ParseError struct {
-	token   token.Token
-	message string
+	Token   token.Token
+	Message string
 }
 
 func (e *ParseError) Error() string {
-	reportError(e.token.Line, e.token.Lexeme, e.message)
-	return MakeError(e.token, e.message)
+	reportError(e.Token.Line, e.Token.Lexeme, e.Message)
+	return MakeError(e.Token, e.Message)
 }
 
 // LogError reports an error
-func LogError(err error) {
-	HadError = true
-	fmt.Fprintf(os.Stderr, "%v\n", err)
+func LogError(err error) error {
+	return fmt.Errorf("%v", err)
 }
 
 // MakeError shows a parsing error as a string
-func MakeError(token token.Token, message string) error {
-	if token.Type == token.EOF {
-		return fmt.Errorf("[line %v] Error at end: %s", token.Line, message)
+func MakeError(t token.Token, message string) string {
+	if t.Type == token.EOF {
+		return fmt.Sprintf("[line %v] Error at end: %s", t.Line, message)
 	}
-	return fmt.Errorf("[line %v] Error at '%s': %s", token.Line, token.Lexeme, message)
+	return fmt.Sprintf("[line %v] Error at '%s': %s", t.Line, t.Lexeme, message)
 }
 
 // reportError shows an error location on the stderr
