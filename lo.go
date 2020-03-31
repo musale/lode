@@ -57,7 +57,8 @@ func (l *Lox) runPrompt() {
 		if err != nil {
 			break
 		}
-		if line == "exit" || line == "quit" {
+		if line == "exit\n" || line == "quit\n" {
+			fmt.Println("Exiting Lox REPL...")
 			os.Exit(0)
 		}
 		l.run(line)
