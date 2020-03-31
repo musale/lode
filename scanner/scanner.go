@@ -32,9 +32,9 @@ type Scanner struct {
 	tokens               []token.Token
 }
 
-// New creates a new Scanner
-func New(source string) Scanner {
-	return Scanner{line: 1, source: source, tokens: make([]token.Token, 0)}
+// NewScanner creates a new Scanner
+func NewScanner(source string) *Scanner {
+	return &Scanner{line: 1, source: source, tokens: make([]token.Token, 0)}
 }
 
 // ScanTokens consumes the tokens in a source and returns them set to their types
