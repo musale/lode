@@ -5,49 +5,81 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"lo/parseerror"
+	"lo/ast"
+	"lo/parser"
 	"lo/scanner"
 	"os"
 )
 
-// Read a lox filePath and load the content to the run() function
-func runFile(fileName string) {
-	fileData, err := ioutil.ReadFile(fileName)
-	checkError(err)
-
-	run(string(fileData))
+// Lox language
+type Lox struct {
+	HadRunTimeError bool
+	HadError        bool
+	Interpreter     *ast.Interpreter
 }
 
-// Create a CLI that loads lox content
-func runPrompt() {
-	reader := bufio.NewReader(os.Stdin)
-	if parseerror.HadError {
+// NewLox instance
+func NewLox() *Lox {
+	return &Lox{HadRunTimeError: false, HadError: false, Interpreter: ast.NewInterpreter()}
+}
+
+// Read a lox filePath and load the content to the run() function
+func (l *Lox) runFile(fileName string) {
+	fileData, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		fmt.Println(err)
+		l.HadError = true
+	}
+	l.run(string(fileData))
+	if l.HadError {
 		os.Exit(65)
+	}
+
+	if l.HadRunTimeError {
+		os.Exit(70)
+	}
+}
+
+// runPrompt creates a CLI that loads lox content
+func (l *Lox) runPrompt() {
+	reader := bufio.NewReader(os.Stdin)
+	if l.HadError {
+		os.Exit(65)
+	}
+
+	if l.HadRunTimeError {
+		os.Exit(70)
 	}
 
 	for {
 		fmt.Print("> ")
-		inputData, err := reader.ReadString('\n')
-		checkError(err)
-		run(inputData)
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		if line == "exit" || line == "quit" {
+			os.Exit(0)
+		}
+		l.run(line)
+
 	}
 }
 
-// Interpret lox content
-func run(fileData string) {
-	scanner := scanner.New(fileData)
+// run interprets lox content
+func (l *Lox) run(srcData string) {
+	scanner := scanner.NewScanner(srcData)
 	tokens := scanner.ScanTokens()
-
-	for _, token := range tokens {
-		fmt.Println(token)
-	}
-}
-
-// Check if an error has occured and panic
-func checkError(err error) {
+	p := parser.NewParser(tokens)
+	expressions, err := p.Parse()
 	if err != nil {
-		panic(err)
+		l.HadError = true
+		fmt.Println(err)
+		return
 	}
+	if l.HadError {
+		return
+	}
+	l.Interpreter.Interpret(expressions)
 }
 
 func main() {
@@ -59,10 +91,13 @@ func main() {
 	if len(args) > 1 {
 		fmt.Println("Usage: ./lo [filePath]")
 		os.Exit(64) // The command was used incorrectly
-	} else if len(args) == 1 {
-		runFile(args[0])
 	} else {
-		runPrompt()
+		l := NewLox()
+		if len(args) == 1 {
+			l.runFile(args[0])
+		} else {
+			l.runPrompt()
+		}
 	}
 
 }
