@@ -13,12 +13,13 @@ type Parser struct {
 	inloop  bool
 }
 
-// New creates a new parser
-func New(tokens []token.Token) Parser {
-	return Parser{tokens, 0, false}
+// NewParser creates a new parser
+func NewParser(tokens []token.Token) *Parser {
+	return &Parser{tokens, 0, false}
 }
 
-func (p *Parser) parse() (ast.Expr, error) {
+// Parse an expression
+func (p *Parser) Parse() (ast.Expr, error) {
 	expr, err := p.expression()
 	if err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func (p *Parser) equality() (ast.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.BinaryExpr{expr, operator, right}
+		expr = &ast.BinaryExpr{Left: expr, Operator: operator, Right: right}
 	}
 	return expr, nil
 }
@@ -108,7 +109,7 @@ func (p *Parser) comparison() (ast.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.BinaryExpr{expr, operator, right}
+		expr = &ast.BinaryExpr{Left: expr, Operator: operator, Right: right}
 	}
 	return expr, nil
 }
@@ -125,7 +126,7 @@ func (p *Parser) addition() (ast.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.BinaryExpr{expr, operator, right}
+		expr = &ast.BinaryExpr{Left: expr, Operator: operator, Right: right}
 	}
 	return expr, nil
 }
@@ -142,7 +143,7 @@ func (p *Parser) multiplication() (ast.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.BinaryExpr{expr, operator, right}
+		expr = &ast.BinaryExpr{Left: expr, Operator: operator, Right: right}
 	}
 	return expr, nil
 }
@@ -155,7 +156,7 @@ func (p *Parser) unary() (ast.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &ast.UnaryExpr{operator, right}, nil
+		return &ast.UnaryExpr{Operator: operator, Right: right}, nil
 	}
 	expr, err := p.primary()
 	if err != nil {
@@ -167,17 +168,17 @@ func (p *Parser) unary() (ast.Expr, error) {
 // primary is the highest level of precedence handling the basic expressions
 func (p *Parser) primary() (ast.Expr, error) {
 	if p.match(token.FALSE) {
-		return &ast.LiteralExpr{false}, nil
+		return &ast.LiteralExpr{Object: false}, nil
 	}
 	if p.match(token.TRUE) {
-		return &ast.LiteralExpr{true}, nil
+		return &ast.LiteralExpr{Object: true}, nil
 	}
 	if p.match(token.NIL) {
-		return &ast.LiteralExpr{nil}, nil
+		return &ast.LiteralExpr{Object: nil}, nil
 	}
 
 	if p.match(token.NUMBER, token.STRING) {
-		return &ast.LiteralExpr{p.previous().Literal}, nil
+		return &ast.LiteralExpr{Object: p.previous().Literal}, nil
 	}
 	if p.match(token.LEFTPAREN) {
 		expr, err := p.expression()
@@ -185,9 +186,9 @@ func (p *Parser) primary() (ast.Expr, error) {
 			return nil, err
 		}
 		p.consume(token.RIGHTPAREN, "Expect ')' after expression.")
-		return &ast.GroupExpr{expr}, nil
+		return &ast.GroupExpr{Expression: expr}, nil
 	}
-	return nil, &parseerror.ParseError{p.peek(), "Expected an expression"}
+	return nil, &parseerror.ParseError{Token: p.peek(), Message: "Expected an expression"}
 }
 
 // consume takes in the tokens until a check to stop is reached. i.e. when
@@ -196,7 +197,7 @@ func (p *Parser) consume(typ token.Type, message string) (token.Token, error) {
 	if p.check(typ) {
 		return p.advance(), nil
 	}
-	return p.previous(), &parseerror.ParseError{p.peek(), message}
+	return p.previous(), &parseerror.ParseError{Token: p.peek(), Message: message}
 }
 
 // synchronize discards token until it finds a statement
