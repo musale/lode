@@ -8,6 +8,7 @@ import (
 
 // HadError stops code execution when we encounter a known error
 var HadError = false
+var HadRunTimeError = false
 
 // SyntaxError describes a syntactic error on a given line
 type SyntaxError struct {
@@ -28,6 +29,18 @@ type ParseError struct {
 
 func (e *ParseError) Error() string {
 	reportError(e.Token.Line, e.Token.Lexeme, e.Message)
+	return MakeError(e.Token, e.Message)
+}
+
+// RunTimeError occured when the expression values were being evaluated
+type RunTimeError struct {
+	Token   token.Token
+	Message string
+}
+
+func (e *RunTimeError) Error() string {
+	HadRunTimeError = true
+	fmt.Fprintf(os.Stderr, "[line %d] RunTime Error: %s: %s\n", e.Token.Line, e.Token.Lexeme, e.Message)
 	return MakeError(e.Token, e.Message)
 }
 
