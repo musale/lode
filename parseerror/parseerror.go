@@ -17,7 +17,7 @@ type SyntaxError struct {
 }
 
 func (e *SyntaxError) Error() string {
-	reportError(e.Token.Line, e.Token.Lexeme, e.Message)
+	HadError = true
 	return MakeError(e.Token, e.Message)
 }
 
@@ -28,7 +28,7 @@ type ParseError struct {
 }
 
 func (e *ParseError) Error() string {
-	reportError(e.Token.Line, e.Token.Lexeme, e.Message)
+	HadError = true
 	return MakeError(e.Token, e.Message)
 }
 
