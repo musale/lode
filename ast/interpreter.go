@@ -16,9 +16,12 @@ func NewInterpreter() *Interpreter {
 }
 
 // Interpret the given expressions
-func (i Interpreter) Interpret(e Expr) {
-	value := i.evaluate(e)
-	fmt.Sprint(value)
+func (i Interpreter) Interpret(stmts []Stmt) {
+	// value := i.evaluate(e)
+	// fmt.Println(value)
+	for _, stmt := range stmts {
+		i.evaluate(stmt)
+	}
 }
 
 func (i *Interpreter) String() string {
@@ -182,4 +185,17 @@ func (i Interpreter) isTruthy(obj interface{}) bool {
 // VisitVariableExpression ...
 func (i Interpreter) VisitVariableExpression(e *VariableExpr) interface{} {
 	return ""
+}
+
+// VisitPrintStmt ...
+func (i Interpreter) VisitPrintStmt(e *PrintStmt) interface{} {
+	value := i.evaluate(e.Expression)
+	fmt.Println(fmt.Sprint(value))
+	return nil
+}
+
+// VisitExpressionStmt ...
+func (i Interpreter) VisitExpressionStmt(e *ExpressionStmt) interface{} {
+	i.evaluate(e.Expression)
+	return nil
 }
