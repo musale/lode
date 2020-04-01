@@ -71,7 +71,7 @@ func (l *Lox) run(srcData string) {
 	scanner := scanner.NewScanner(srcData)
 	tokens := scanner.ScanTokens()
 	p := parser.NewParser(tokens)
-	expressions, err := p.Parse()
+	stmts, err := p.Parse()
 	if err != nil {
 		l.HadError = true
 		fmt.Println(err)
@@ -80,7 +80,7 @@ func (l *Lox) run(srcData string) {
 	if l.HadError {
 		return
 	}
-	l.Interpreter.Interpret(expressions)
+	l.Interpreter.Interpret(stmts)
 }
 
 func main() {
