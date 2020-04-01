@@ -19,12 +19,53 @@ func NewParser(tokens []token.Token) *Parser {
 }
 
 // Parse an expression
-func (p *Parser) Parse() (ast.Expr, error) {
-	expr, err := p.expression()
+func (p *Parser) Parse() ([]ast.Stmt, error) {
+	stmts := make([]ast.Stmt, 0)
+	for !p.isAtEnd() {
+		stmt, err := p.statement()
+		if err != nil {
+			return nil, err
+		}
+		stmts = append(stmts, stmt)
+	}
+	return stmts, nil
+}
+
+// statement determines the specific statement rule matched
+// by looking at the token
+func (p *Parser) statement() (ast.Stmt, error) {
+	if p.match(token.PRINT) {
+		stmt, err := p.printStatement()
+		if err != nil {
+			return nil, err
+		}
+		return stmt, nil
+	}
+	expr, err := p.expressionStatement()
 	if err != nil {
 		return nil, err
 	}
 	return expr, nil
+}
+
+// printStatement ...
+func (p *Parser) printStatement() (ast.Stmt, error) {
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	p.consume(token.SEMICOLON, "Expected ';' after value.")
+	return &ast.PrintStmt{Expression: value}, nil
+}
+
+// expressionStatement ...
+func (p *Parser) expressionStatement() (ast.Stmt, error) {
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	p.consume(token.SEMICOLON, "Expected ';' after value.")
+	return &ast.ExpressionStmt{Expression: value}, nil
 }
 
 // expression expands to equality rule
