@@ -22,13 +22,31 @@ func NewParser(tokens []token.Token) *Parser {
 func (p *Parser) Parse() ([]ast.Stmt, error) {
 	stmts := make([]ast.Stmt, 0)
 	for !p.isAtEnd() {
-		stmt, err := p.statement()
+		stmt, err := p.declaration()
 		if err != nil {
 			return nil, err
 		}
 		stmts = append(stmts, stmt)
 	}
 	return stmts, nil
+}
+
+// declaration repeatedly gets called when parsing a series of
+// statements in a block
+func (p *Parser) declaration() (ast.Stmt, error) {
+	if p.match(token.VAR) {
+		decl, err := p.varDeclaration()
+		if err != nil {
+			return nil, err
+		}
+		return decl, nil
+	}
+	stmt, err := p.statement()
+	if e, ok := err.(*parseerror.ParseError); ok {
+		p.synchronize()
+		return nil, e
+	}
+	return stmt, nil
 }
 
 // statement determines the specific statement rule matched
@@ -46,6 +64,24 @@ func (p *Parser) statement() (ast.Stmt, error) {
 		return nil, err
 	}
 	return expr, nil
+}
+
+// varDeclaration
+func (p *Parser) varDeclaration() (ast.Stmt, error) {
+	typ, err := p.consume(token.IDENTIFIER, "Expected a vaariable name.")
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer ast.Expr
+	if p.match(token.EQUAL) {
+		initializer, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+	p.consume(token.SEMICOLON, "Expected a ';' after a variable declaration")
+	return &ast.VarStmt{Name: typ, Initializer: initializer}, nil
 }
 
 // printStatement ...
@@ -228,6 +264,9 @@ func (p *Parser) primary() (ast.Expr, error) {
 		}
 		p.consume(token.RIGHTPAREN, "Expect ')' after expression.")
 		return &ast.GroupExpr{Expression: expr}, nil
+	}
+	if p.match(token.IDENTIFIER) {
+		return &ast.VariableExpr{Name: p.previous()}, nil
 	}
 	return nil, &parseerror.ParseError{Token: p.peek(), Message: "Expected an expression"}
 }
