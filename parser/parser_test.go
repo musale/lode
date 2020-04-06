@@ -8,10 +8,10 @@ import (
 
 func TestParser(t *testing.T) {
 	source := `1+2+9.22;`
-	sc := scanner.New(source)
+	sc := scanner.NewScanner(source)
 	tokens := sc.ScanTokens()
-	pa := New(tokens)
-	expression, err := pa.parse()
+	pa := NewParser(tokens)
+	expression, err := pa.Parse()
 	if err != nil {
 		t.Errorf("%s", err)
 	}
