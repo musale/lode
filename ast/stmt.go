@@ -1,5 +1,7 @@
 package ast
 
+import "go/token"
+
 // Stmt interface for statements
 type Stmt interface {
 	Accept(i Interpreter) interface{}
@@ -24,4 +26,16 @@ type ExpressionStmt struct {
 // Accept visits the ExpressionStmt
 func (stmt *ExpressionStmt) Accept(i Interpreter) interface{} {
 	return i.VisitExpressionStmt(stmt)
+}
+
+// VarStmt statement
+type VarStmt struct {
+	Name        token.Token
+	Initializer Expr
+}
+
+// Accept visits the VarStmt
+func (stmt *VarStmt) Accept(i Interpreter) interface{} {
+	return i.VisitVarStmt(stmt)
+
 }

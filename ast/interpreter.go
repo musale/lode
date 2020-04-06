@@ -199,3 +199,9 @@ func (i Interpreter) VisitExpressionStmt(e *ExpressionStmt) interface{} {
 	i.evaluate(e.Expression)
 	return nil
 }
+
+// VisitVarStmt ...
+func (i Interpreter) VisitVarStmt(e *VarStmt) interface{} {
+	i.evaluate(e.Initializer)
+	return nil
+}
