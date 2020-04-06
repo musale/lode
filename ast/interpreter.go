@@ -2,17 +2,21 @@ package ast
 
 import (
 	"fmt"
+	"lo/environment"
 	"lo/parseerror"
 	"lo/token"
 	"reflect"
 )
 
 // Interpreter ...
-type Interpreter struct{}
+type Interpreter struct {
+	Environment environment.Environment
+}
 
 // NewInterpreter creates a new interpreter
 func NewInterpreter() *Interpreter {
-	return &Interpreter{}
+	env := environment.NewEnvironment()
+	return &Interpreter{Environment: env}
 }
 
 // Interpret the given expressions
@@ -184,7 +188,7 @@ func (i Interpreter) isTruthy(obj interface{}) bool {
 
 // VisitVariableExpression ...
 func (i Interpreter) VisitVariableExpression(e *VariableExpr) interface{} {
-	return ""
+	return i.Environment.Get(e.Name)
 }
 
 // VisitPrintStmt ...
@@ -202,6 +206,10 @@ func (i Interpreter) VisitExpressionStmt(e *ExpressionStmt) interface{} {
 
 // VisitVarStmt ...
 func (i Interpreter) VisitVarStmt(e *VarStmt) interface{} {
-	i.evaluate(e.Initializer)
+	var value interface{}
+	if e.Initializer != nil {
+		value = i.evaluate(e.Initializer)
+	}
+	i.Environment.Define(e.Name.Lexeme, value)
 	return nil
 }

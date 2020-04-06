@@ -1,6 +1,6 @@
 package ast
 
-import "go/token"
+import "lo/token"
 
 // Stmt interface for statements
 type Stmt interface {
