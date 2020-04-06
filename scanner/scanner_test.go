@@ -10,7 +10,7 @@ func TestScanTokens(t *testing.T) {
 	var num = 1+2+9.22
 	`
 
-	scanner := New(source)
+	scanner := NewScanner(source)
 	tokens := scanner.ScanTokens()
 
 	testCases := []struct {
