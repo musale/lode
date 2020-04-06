@@ -25,8 +25,9 @@ func (e *Environment) Define(name string, value interface{}) {
 
 // Get retrieves a variable value from the environment
 func (e *Environment) Get(t token.Token) interface{} {
-	if e.Values[t.Lexeme] != nil {
-		return e.Values[t.Lexeme]
+	value, found := e.Values[t.Lexeme]
+	if found {
+		return value
 	}
 	return &parseerror.RunTimeError{Token: t, Message: fmt.Sprintf("Undefined variable '%s'.", t.Lexeme)}
 }
