@@ -57,8 +57,8 @@ func MakeError(t token.Token, message string) string {
 	return fmt.Sprintf("[line %v] Error at '%s': %s", t.Line, t.Lexeme, message)
 }
 
-// reportError shows an error location on the stderr
-func reportError(line int, where string, message string) {
+// ReportError shows an error location on the stderr
+func ReportError(line int, message string) {
 	HadError = true
-	fmt.Fprintf(os.Stderr, "[line %d] Error: %s: %s\n", line, where, message)
+	fmt.Fprintf(os.Stderr, "[line %d] Error: %s\n", line, message)
 }

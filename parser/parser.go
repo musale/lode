@@ -68,7 +68,7 @@ func (p *Parser) statement() (ast.Stmt, error) {
 
 // varDeclaration
 func (p *Parser) varDeclaration() (ast.Stmt, error) {
-	typ, err := p.consume(token.IDENTIFIER, "Expected a vaariable name.")
+	typ, err := p.consume(token.IDENTIFIER, "Expected a variable name.")
 	if err != nil {
 		return nil, err
 	}
@@ -106,11 +106,12 @@ func (p *Parser) expressionStatement() (ast.Stmt, error) {
 
 // expression expands to equality rule
 func (p *Parser) expression() (ast.Expr, error) {
-	expr, err := p.equality()
-	if err != nil {
-		return nil, err
-	}
-	return expr, nil
+	// expr, err := p.equality()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return expr, nil
+	return p.assignment()
 }
 
 // equalilty handles the != and == expressions
@@ -300,4 +301,24 @@ func (p *Parser) synchronize() {
 		}
 		p.advance()
 	}
+}
+
+func (p *Parser) assignment() (ast.Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+	if p.match(token.EQUAL) {
+		equals := p.previous()
+		value, err := p.assignment()
+		if err != nil {
+			return nil, err
+		}
+		e, ok := expr.(*ast.VariableExpr)
+		if ok {
+			return &ast.AssignExpr{Name: e.Name, Value: value}, nil
+		}
+		parseerror.ReportError(equals.Line, "Invalid assignment target.")
+	}
+	return expr, nil
 }

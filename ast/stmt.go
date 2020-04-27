@@ -14,7 +14,6 @@ type PrintStmt struct {
 
 // Accept visits the PrintStmt
 func (stmt *PrintStmt) Accept(i Interpreter) interface{} {
-
 	return i.VisitPrintStmt(stmt)
 }
 

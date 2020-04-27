@@ -31,3 +31,13 @@ func (e *Environment) Get(t token.Token) interface{} {
 	}
 	return &parseerror.RunTimeError{Token: t, Message: fmt.Sprintf("Undefined variable '%s'.", t.Lexeme)}
 }
+
+// Assign does not create a new variable
+func (e *Environment) Assign(t token.Token, value interface{}) interface{} {
+	v, found := e.Values[t.Lexeme]
+	if !found {
+		return &parseerror.RunTimeError{Token: t, Message: fmt.Sprintf("Undefined variable '%s'.", t.Lexeme)}
+	}
+	e.Values[t.Lexeme] = v
+	return nil
+}

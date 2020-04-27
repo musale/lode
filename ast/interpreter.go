@@ -37,7 +37,9 @@ func (i *Interpreter) String() string {
 
 // VisitAssignExpression ...
 func (i Interpreter) VisitAssignExpression(e *AssignExpr) interface{} {
-	return ""
+	value := i.evaluate(e.Value)
+	i.Environment.Assign(e.Name, value)
+	return value
 }
 
 // VisitBinaryExpression ...
